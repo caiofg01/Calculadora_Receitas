@@ -822,6 +822,20 @@
             saveData();
             renderRecipes();
         }
+        function toggleCategory(catId) {
+            const content = document.getElementById(`cat-content-${catId}`);
+            const icon = document.getElementById(`cat-icon-${catId}`);
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            } else {
+                content.style.display = 'none';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            }
+        }
 
         function renderRecipes() {
             const container = document.getElementById('recipes-list');
@@ -842,12 +856,18 @@
             for (const catId in grouped) {
                 const catName = getCategoryName(catId);
                 
-                container.innerHTML += `
-                    <div class="category-header">
-                        <i class="fa-solid fa-layer-group"></i> ${catName}
+                // 1. Cria o cabeçalho clicável e abre a div de conteúdo
+                let categoryHtml = `
+                    <div class="category-header" onclick="toggleCategory('${catId}')" style="cursor: pointer; justify-content: space-between; transition: 0.2s;" title="Clique para minimizar/expandir">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <i class="fa-solid fa-layer-group"></i> ${catName}
+                        </div>
+                        <i class="fa-solid fa-chevron-down" id="cat-icon-${catId}"></i>
                     </div>
+                    <div id="cat-content-${catId}" style="display: block;">
                 `;
 
+                // 2. Adiciona todas as receitas dessa categoria
                 grouped[catId].forEach(recipe => {
                     const calc = calculateRecipeCosts(recipe);
                     let detailsHtml = '';
@@ -874,8 +894,7 @@
                         }
                     });
 
-                    // Alterações aplicadas aqui: botão duplicar e container responsivo para a tabela
-                    container.innerHTML += `
+                    categoryHtml += `
                         <div class="card">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                                 <div>
@@ -912,6 +931,10 @@
                         </div>
                     `;
                 });
+
+                // 3. Fecha a div de conteúdo e insere no HTML da página
+                categoryHtml += `</div>`;
+                container.innerHTML += categoryHtml;
             }
         }
 

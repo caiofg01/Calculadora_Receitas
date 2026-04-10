@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GelaCost PRO - Gestão de Produtos</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -207,6 +207,7 @@
             border-collapse: collapse;
             font-size: 0.9rem;
             margin-top: 10px;
+            min-width: 400px;
         }
         .mini-table th {
             text-align: left;
@@ -229,6 +230,43 @@
             text-align: center;
             margin-top: 20px;
         }
+
+        /* --- MOBILE RESPONSIVE TWEAKS --- */
+        @media (max-width: 600px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            
+            header { padding: 1rem; }
+            .btn-header span { display: none; } /* Oculta texto Salvar no celular */
+            .logo-text { font-size: 1.2rem; }
+
+            /* Bottom Navigation */
+            .nav-container {
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                margin: 0; border-radius: 0;
+                padding: 10px 5px;
+                box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+                justify-content: space-around;
+                background: var(--surface);
+                z-index: 1000;
+            }
+            body { padding-bottom: 90px; } /* Espaço para o menu inferior */
+            
+            .nav-btn {
+                flex-direction: column;
+                padding: 5px;
+                font-size: 0.70rem;
+                gap: 4px;
+            }
+            .nav-btn i { font-size: 1.2rem; }
+            
+            /* Melhorias de Toque (Touch Targets) */
+            input, select { padding: 15px; font-size: 16px; } 
+            .btn { padding: 15px 20px; }
+            
+            /* Rolagem horizontal para tabelas */
+            .table-responsive { width: 100%; overflow-x: auto; }
+        }
     </style>
 </head>
 <body>
@@ -239,7 +277,7 @@
             <div class="logo-text">GelaCost <span>PRO</span></div>
         </div>
         <button class="btn-header" onclick="toggleDataModal()">
-            <i class="fa-solid fa-floppy-disk"></i> Salvar/Carregar
+            <i class="fa-solid fa-floppy-disk"></i> <span>Salvar/Carregar</span>
         </button>
     </header>
 
@@ -265,8 +303,8 @@
 
     <div class="nav-container">
         <button class="nav-btn active" onclick="showView('home')"><i class="fa-solid fa-chart-line"></i> Home</button>
-        <button class="nav-btn" onclick="showView('catalog')"><i class="fa-solid fa-basket-shopping"></i> Ingredientes</button>
-        <button class="nav-btn" onclick="showView('packaging')"><i class="fa-solid fa-box-open"></i> Embalagens/Insumos</button>
+        <button class="nav-btn" onclick="showView('catalog')"><i class="fa-solid fa-basket-shopping"></i> Insumos</button>
+        <button class="nav-btn" onclick="showView('packaging')"><i class="fa-solid fa-box-open"></i> Embalagens</button>
         <button class="nav-btn" onclick="showView('recipes')"><i class="fa-solid fa-clipboard-list"></i> Receitas</button>
         <button class="nav-btn" onclick="showView('options')"><i class="fa-solid fa-gear"></i> Opções</button>
     </div>
@@ -283,14 +321,14 @@
                         <span class="label">Total Despesas Fixas (Luz, Aluguel, MEI, etc)</span>
                         <div style="display: flex; align-items: center; gap: 5px;">
                             <span style="font-weight: bold; color: var(--text-light);">R$</span>
-                            <input type="number" id="home-fixed-cost" placeholder="0.00" onchange="calculateGoal()" style="font-weight: bold; font-size: 1.1rem;">
+                            <input type="number" inputmode="decimal" id="home-fixed-cost" placeholder="0.00" onchange="calculateGoal()" style="font-weight: bold; font-size: 1.1rem;">
                         </div>
                     </div>
                     <div>
                         <span class="label">Preço de Venda Médio Unitário</span>
                         <div style="display: flex; align-items: center; gap: 5px;">
                             <span style="font-weight: bold; color: var(--text-light);">R$</span>
-                            <input type="number" id="home-target-price" placeholder="0.00" onchange="calculateGoal()" style="font-weight: bold; font-size: 1.1rem;">
+                            <input type="number" inputmode="decimal" id="home-target-price" placeholder="0.00" onchange="calculateGoal()" style="font-weight: bold; font-size: 1.1rem;">
                         </div>
                     </div>
                 </div>
@@ -299,15 +337,16 @@
 
             <div class="card">
                 <h2>Resumo Geral de Rentabilidade</h2>
-                <div id="dashboard-list"></div>
+                <div class="table-responsive">
+                    <div id="dashboard-list" style="min-width: 500px;"></div>
+                </div>
             </div>
         </div>
 
-        <!-- INGREDINTES -->
         <div id="catalog" class="view">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2>Ingredientes da Receita</h2>
-                <button class="btn btn-primary" onclick="toggleIngForm()"><i class="fa-solid fa-plus"></i> Novo Ingrediente</button>
+                <button class="btn btn-primary" onclick="toggleIngForm()"><i class="fa-solid fa-plus"></i> Novo</button>
             </div>
             
             <div id="new-ingredient-form" class="form-section">
@@ -321,13 +360,13 @@
                     </div>
                     <div>
                         <span class="label">Preço Pago (R$)</span>
-                        <input type="number" id="new-ing-price" placeholder="0.00">
+                        <input type="number" inputmode="decimal" id="new-ing-price" placeholder="0.00">
                     </div>
                 </div>
                 <div class="grid-2" style="margin-bottom: 15px;">
                     <div>
                         <span class="label">Qtd na Embalagem Fechada</span>
-                        <input type="number" id="new-ing-qty" placeholder="Ex: 395">
+                        <input type="number" inputmode="decimal" id="new-ing-qty" placeholder="Ex: 395">
                     </div>
                     <div>
                         <span class="label">Unidade da Embalagem</span>
@@ -350,11 +389,10 @@
             <div id="ingredients-grid" class="grid-3"></div>
         </div>
 
-        <!-- EMBALAGENS (NOVO) -->
         <div id="packaging" class="view">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2>Embalagens & Insumos</h2>
-                <button class="btn btn-primary" onclick="togglePackForm()"><i class="fa-solid fa-plus"></i> Nova Embalagem</button>
+                <button class="btn btn-primary" onclick="togglePackForm()"><i class="fa-solid fa-plus"></i> Nova</button>
             </div>
 
             <div id="new-pack-form" class="form-section">
@@ -368,13 +406,13 @@
                     </div>
                     <div>
                         <span class="label">Preço Pago no Pacote (R$)</span>
-                        <input type="number" id="new-pack-price" placeholder="0.00">
+                        <input type="number" inputmode="decimal" id="new-pack-price" placeholder="0.00">
                     </div>
                 </div>
                 <div class="grid-2" style="margin-bottom: 15px;">
                     <div>
                         <span class="label">Quantas unidades vêm no pacote?</span>
-                        <input type="number" id="new-pack-qty" placeholder="Ex: 100">
+                        <input type="number" inputmode="decimal" id="new-pack-qty" placeholder="Ex: 100">
                     </div>
                 </div>
                 <div style="display:flex; justify-content: flex-end; gap: 10px;">
@@ -387,7 +425,6 @@
             <div id="packaging-grid" class="grid-3"></div>
         </div>
 
-        <!-- RECEITAS -->
         <div id="recipes" class="view">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2>Catálogo de Produtos e Receitas</h2>
@@ -396,30 +433,29 @@
             <div id="recipes-list"></div>
         </div>
 
-        <!-- OPÇÕES -->
         <div id="options" class="view">
             <h2>Configurações de Negócio</h2>
             <div class="grid-3">
                 <div class="card">
                     <span class="label"><i class="fa-solid fa-store"></i> Taxas de Venda</span>
                     <br><span class="label">Taxa do iFood / Apps (%)</span>
-                    <input type="number" id="opt-ifood" placeholder="Ex: 12">
+                    <input type="number" inputmode="decimal" id="opt-ifood" placeholder="Ex: 12">
                 </div>
                 <div class="card">
                     <span class="label"><i class="fa-solid fa-fire-burner"></i> Custos Indiretos</span>
                     <br><span class="label">Luz/Gás/Água por Receita (R$)</span>
-                    <input type="number" id="opt-utility" placeholder="Ex: 2.50">
+                    <input type="number" inputmode="decimal" id="opt-utility" placeholder="Ex: 2.50">
                     <p class="sub-text">Custo diluído por batida/receita.</p>
                 </div>
                 <div class="card">
                     <span class="label"><i class="fa-solid fa-percent"></i> Meta de Lucro</span>
                     <br><span class="label">Margem de Lucro Desejada (%)</span>
-                    <input type="number" id="opt-margin" placeholder="Ex: 50">
+                    <input type="number" inputmode="decimal" id="opt-margin" placeholder="Ex: 50">
                 </div>
                 <div class="card">
                     <span class="label"><i class="fa-solid fa-trash-can"></i> Desperdício</span>
                     <br><span class="label">Margem de Perda (%)</span>
-                    <input type="number" id="opt-waste" placeholder="Ex: 5" value="0">
+                    <input type="number" inputmode="decimal" id="opt-waste" placeholder="Ex: 5" value="0">
                 </div>
             </div>
             <button class="btn btn-success" style="width: 100%; padding: 15px; margin-top: 10px;" onclick="saveOptionsManual()">
@@ -521,6 +557,7 @@
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
             event.currentTarget.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // Correção de UX no mobile
             if(viewId === 'home') {
                 renderDashboard();
                 calculateGoal();
@@ -719,7 +756,6 @@
         function deletePack(id) {
             if(confirm("Remover esta embalagem? As receitas que a utilizam poderão ficar sem o cálculo dela.")) {
                 appData.packaging = appData.packaging.filter(i => i.id !== id);
-                // Note: We don't forcefully remove it from recipes here so the user can see what broke, or we could. Let's just leave it, calculateRecipeCosts handles missing ids gracefully (adds 0 cost).
                 saveData();
                 renderPackaging();
             }
@@ -772,11 +808,25 @@
         }
 
         // --- RECIPE LOGIC ---
+        
+        // Função Nova: Duplicar Receita
+        function duplicateRecipe(id) {
+            const originalRecipe = appData.recipes.find(r => r.id === id);
+            if (!originalRecipe) return;
+
+            const newRecipe = JSON.parse(JSON.stringify(originalRecipe));
+            newRecipe.id = generateId();
+            newRecipe.name = newRecipe.name + " (Cópia)";
+            
+            appData.recipes.push(newRecipe);
+            saveData();
+            renderRecipes();
+        }
+
         function renderRecipes() {
             const container = document.getElementById('recipes-list');
             container.innerHTML = '';
 
-            // Group recipes by category
             const grouped = {};
             appData.recipes.forEach(recipe => {
                 const catId = recipe.categoryId || 1;
@@ -792,19 +842,16 @@
             for (const catId in grouped) {
                 const catName = getCategoryName(catId);
                 
-                // Category Header
                 container.innerHTML += `
                     <div class="category-header">
                         <i class="fa-solid fa-layer-group"></i> ${catName}
                     </div>
                 `;
 
-                // Recipes in this category
                 grouped[catId].forEach(recipe => {
                     const calc = calculateRecipeCosts(recipe);
                     let detailsHtml = '';
                     
-                    // Ingredientes
                     recipe.ingredients.forEach(rIng => {
                         const dbIng = appData.ingredients.find(i => i.id == rIng.id);
                         if(dbIng) {
@@ -818,7 +865,6 @@
                         }
                     });
 
-                    // Embalagens
                     if(!recipe.packaging) recipe.packaging = [];
                     recipe.packaging.forEach(rPack => {
                         const dbPack = appData.packaging.find(p => p.id == rPack.id);
@@ -828,6 +874,7 @@
                         }
                     });
 
+                    // Alterações aplicadas aqui: botão duplicar e container responsivo para a tabela
                     container.innerHTML += `
                         <div class="card">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
@@ -835,9 +882,10 @@
                                     <h2 style="margin:0">${recipe.name} <span class="badge-category">${catName}</span></h2>
                                     <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-light); margin-top: 5px;">Rendimento: ${recipe.yield} unidades</div>
                                 </div>
-                                <div>
-                                    <button class="btn btn-danger" onclick="deleteRecipe(${recipe.id})" style="padding:5px 10px;"><i class="fa-solid fa-trash"></i></button>
-                                    <button class="btn btn-primary" onclick="editRecipe(${recipe.id})">Editar</button>
+                                <div style="display:flex; flex-wrap:wrap; gap:5px; justify-content:flex-end;">
+                                    <button class="btn btn-secondary" onclick="duplicateRecipe(${recipe.id})" style="padding:8px;" title="Duplicar Receita"><i class="fa-solid fa-copy"></i></button>
+                                    <button class="btn btn-danger" onclick="deleteRecipe(${recipe.id})" style="padding:8px;"><i class="fa-solid fa-trash"></i></button>
+                                    <button class="btn btn-primary" onclick="editRecipe(${recipe.id})" style="padding:8px 12px;">Editar</button>
                                 </div>
                             </div>
                             <hr style="margin:15px 0; border-color:var(--border);">
@@ -851,13 +899,15 @@
                                 <div><span class="label" style="color:var(--ifood)">Preço iFood (+${appData.settings.ifoodFee}%)</span><span class="price-tag-ifood">${formatCurrency(calc.iFoodPrice)}</span></div>
                             </div>
 
-                            <div style="background: #f9fafb; padding: 15px; border-radius: 8px;">
+                            <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-top:10px;">
                                 <span class="label">Detalhamento Financeiro (Receita Inteira / Lote)</span>
-                                <table class="mini-table">
-                                    <thead><tr><th>Item</th><th>Qtd Usada na Receita</th><th>Custo Total</th></tr></thead>
-                                    <tbody>${detailsHtml}</tbody>
-                                    <tfoot><tr><td colspan="2">CUSTO TOTAL DO LOTE (${recipe.yield} un)</td><td>${formatCurrency(calc.totalBatchCost)}</td></tr></tfoot>
-                                </table>
+                                <div class="table-responsive">
+                                    <table class="mini-table">
+                                        <thead><tr><th>Item</th><th>Qtd Usada na Receita</th><th>Custo Total</th></tr></thead>
+                                        <tbody>${detailsHtml}</tbody>
+                                        <tfoot><tr><td colspan="2">CUSTO TOTAL DO LOTE (${recipe.yield} un)</td><td>${formatCurrency(calc.totalBatchCost)}</td></tr></tfoot>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -869,7 +919,6 @@
             const name = prompt("Nome do Produto/Receita:");
             if (!name) return;
             
-            // Set default category to 1
             const newRecipe = { id: generateId(), name: name, categoryId: 1, time: 30, yield: 10, ingredients: [], packaging: [] };
             appData.recipes.push(newRecipe);
             saveData();
@@ -889,12 +938,10 @@
             if(selectElement.value === 'new') {
                 const newId = addCategory();
                 if(newId) {
-                    // Reload edit screen to show new category
                     appData.recipes.find(r=>r.id===recipeId).categoryId = newId;
                     saveData();
                     editRecipe(recipeId);
                 } else {
-                    // Revert selection
                     selectElement.value = appData.recipes.find(r=>r.id===recipeId).categoryId;
                 }
             } else {
@@ -907,63 +954,57 @@
             if (!recipe) return;
             if(!recipe.packaging) recipe.packaging = [];
 
-            // Category Options
             let catOptionsHtml = '';
             appData.categories.forEach(cat => {
                 catOptionsHtml += `<option value="${cat.id}" ${recipe.categoryId == cat.id ? 'selected' : ''}>${cat.name}</option>`;
             });
             catOptionsHtml += `<option value="new" style="font-weight:bold; color:var(--primary);">+ Criar Nova Categoria</option>`;
 
-
-            // Ingredients Options
             let ingOptionsHtml = '<option value="">-- Selecione o Ingrediente --</option>';
             appData.ingredients.forEach(ing => {
                 const unitDisplay = ing.unit === 'l' ? 'L' : ing.unit;
                 ingOptionsHtml += `<option value="${ing.id}" data-unit="${ing.unit}">${ing.name} (Cadastrado em: ${unitDisplay})</option>`;
             });
 
-            // Packaging Options
             let packOptionsHtml = '<option value="">-- Selecione a Embalagem --</option>';
             appData.packaging.forEach(p => {
                 packOptionsHtml += `<option value="${p.id}">${p.name} (Pacote c/ ${p.qty})</option>`;
             });
 
-            // Active Ingredients List
             let ingListHtml = '';
             recipe.ingredients.forEach((rIng, index) => {
                 const ingRef = appData.ingredients.find(i => i.id == rIng.id);
                 const ingName = ingRef ? ingRef.name : "Item Excluído";
                 const currentUnit = rIng.unit || (ingRef ? ingRef.unit : 'un'); 
                 ingListHtml += `
-                    <div class="recipe-item">
-                        <span style="flex:1">${ingName}</span>
+                    <div class="recipe-item" style="flex-wrap:wrap; gap:10px;">
+                        <span style="flex:1; min-width:120px;">${ingName}</span>
                         <div style="display:flex; gap:5px; align-items:center;">
-                            <input type="number" value="${rIng.qty}" style="width:70px; padding:5px;" onchange="updateRecipeIng(${id}, ${index}, 'qty', this.value)">
-                            <select style="width:70px; padding:5px;" onchange="updateRecipeIng(${id}, ${index}, 'unit', this.value)">
+                            <input type="number" inputmode="decimal" value="${rIng.qty}" style="width:70px; padding:8px;" onchange="updateRecipeIng(${id}, ${index}, 'qty', this.value)">
+                            <select style="width:70px; padding:8px;" onchange="updateRecipeIng(${id}, ${index}, 'unit', this.value)">
                                 <option value="g" ${currentUnit === 'g' ? 'selected' : ''}>g</option>
                                 <option value="kg" ${currentUnit === 'kg' ? 'selected' : ''}>kg</option>
                                 <option value="ml" ${currentUnit === 'ml' ? 'selected' : ''}>ml</option>
                                 <option value="l" ${currentUnit === 'l' ? 'selected' : ''}>L</option>
                                 <option value="un" ${currentUnit === 'un' ? 'selected' : ''}>un</option>
                             </select>
-                            <button onclick="removeRecipeIng(${id}, ${index})" style="color:red; border:none; background:none; cursor:pointer;"><i class="fa-solid fa-times"></i></button>
+                            <button onclick="removeRecipeIng(${id}, ${index})" style="color:red; border:none; background:none; cursor:pointer; padding:5px;"><i class="fa-solid fa-times fa-lg"></i></button>
                         </div>
                     </div>
                 `;
             });
 
-            // Active Packaging List
             let packListHtml = '';
             recipe.packaging.forEach((rPack, index) => {
                 const packRef = appData.packaging.find(i => i.id == rPack.id);
                 const packName = packRef ? packRef.name : "Item Excluído";
                 packListHtml += `
-                    <div class="recipe-item">
-                        <span style="flex:1"><i class="fa-solid fa-box" style="color:var(--text-light)"></i> ${packName}</span>
+                    <div class="recipe-item" style="flex-wrap:wrap; gap:10px;">
+                        <span style="flex:1; min-width:120px;"><i class="fa-solid fa-box" style="color:var(--text-light)"></i> ${packName}</span>
                         <div style="display:flex; gap:5px; align-items:center;">
-                            <input type="number" value="${rPack.qty}" style="width:80px; padding:5px;" onchange="updateRecipePack(${id}, ${index}, this.value)" title="Quantas unidades usadas nesta receita inteira?">
+                            <input type="number" inputmode="decimal" value="${rPack.qty}" style="width:80px; padding:8px;" onchange="updateRecipePack(${id}, ${index}, this.value)" title="Quantas unidades usadas nesta receita inteira?">
                             <span style="font-size:0.8rem; color:var(--text-light); width:30px;">un</span>
-                            <button onclick="removeRecipePack(${id}, ${index})" style="color:red; border:none; background:none; cursor:pointer;"><i class="fa-solid fa-times"></i></button>
+                            <button onclick="removeRecipePack(${id}, ${index})" style="color:red; border:none; background:none; cursor:pointer; padding:5px;"><i class="fa-solid fa-times fa-lg"></i></button>
                         </div>
                     </div>
                 `;
@@ -971,9 +1012,9 @@
 
             const html = `
                 <div style="background:white; padding:20px; border-radius:12px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <h3>Editando Produto</h3>
-                        <select onchange="handleCategoryChange(this, ${id})" style="width:200px; padding:8px;">
+                    <div style="display:flex; flex-direction:column; gap:15px; margin-bottom:15px;">
+                        <h3 style="margin:0">Editando Produto</h3>
+                        <select onchange="handleCategoryChange(this, ${id})">
                             ${catOptionsHtml}
                         </select>
                     </div>
@@ -984,29 +1025,27 @@
                     <div class="grid-2" style="margin-bottom:20px;">
                         <div style="background:var(--primary-light); padding:10px; border-radius:8px; border:1px solid #c7d2fe;">
                             <span class="label" style="color:var(--primary)">Rendimento da Receita (Unidades)</span>
-                            <input type="number" id="edit-yield" value="${recipe.yield}" style="font-size:1.2rem; font-weight:bold;" onchange="updateRecipeField(${id}, 'yield', this.value)">
+                            <input type="number" inputmode="decimal" id="edit-yield" value="${recipe.yield}" style="font-size:1.2rem; font-weight:bold;" onchange="updateRecipeField(${id}, 'yield', this.value)">
                             <p class="sub-text">Tudo abaixo será calculado com base neste número.</p>
                         </div>
                     </div>
 
-                    <!-- INGREDIENTES SECTION -->
                     <h4 style="margin-top:20px; border-bottom:1px solid var(--border); padding-bottom:5px;">1. Ingredientes (Custo Variável)</h4>
                     <p class="sub-text">O que vai DENTRO do produto.</p>
-                    <div style="display:flex; gap:10px; margin-top:10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px; border:1px solid var(--border);">
-                        <div style="flex: 2"><select id="add-ing-select" onchange="suggestUnit()">${ingOptionsHtml}</select></div>
-                        <div style="flex: 1"><input type="number" id="add-ing-qty" placeholder="Qtd"></div>
-                        <div style="flex: 1"><select id="add-ing-unit"><option value="g">g</option><option value="ml">ml</option><option value="kg">kg</option><option value="l">L</option><option value="un">un</option></select></div>
-                        <button class="btn btn-primary" onclick="addIngToRecipe(${id})"><i class="fa-solid fa-plus"></i></button>
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px; border:1px solid var(--border);">
+                        <div style="flex: 1; min-width: 100%;"><select id="add-ing-select" onchange="suggestUnit()">${ingOptionsHtml}</select></div>
+                        <div style="flex: 1; min-width: 30%;"><input type="number" inputmode="decimal" id="add-ing-qty" placeholder="Qtd"></div>
+                        <div style="flex: 1; min-width: 30%;"><select id="add-ing-unit"><option value="g">g</option><option value="ml">ml</option><option value="kg">kg</option><option value="l">L</option><option value="un">un</option></select></div>
+                        <button class="btn btn-primary" onclick="addIngToRecipe(${id})" style="flex:1; min-width: 100%;"><i class="fa-solid fa-plus"></i> Adicionar Ingrediente</button>
                     </div>
                     <div style="background:white; padding:10px; margin-bottom:20px;">${ingListHtml}</div>
 
-                    <!-- EMBALAGENS SECTION -->
                     <h4 style="margin-top:20px; border-bottom:1px solid var(--border); padding-bottom:5px;">2. Embalagens e Insumos (Custo Fixo)</h4>
                     <p class="sub-text">Quantas unidades de embalagem você usa para o <strong>rendimento total</strong> dessa receita? (Ex: Se rende 10 bolos, use 10 potes).</p>
-                    <div style="display:flex; gap:10px; margin-top:10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px; border:1px solid var(--border);">
-                        <div style="flex: 2"><select id="add-pack-select">${packOptionsHtml}</select></div>
-                        <div style="flex: 1"><input type="number" id="add-pack-qty" placeholder="Qtd Usada (un)"></div>
-                        <button class="btn btn-primary" onclick="addPackToRecipe(${id})"><i class="fa-solid fa-plus"></i></button>
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px; border:1px solid var(--border);">
+                        <div style="flex: 1; min-width: 100%;"><select id="add-pack-select">${packOptionsHtml}</select></div>
+                        <div style="flex: 1; min-width: 30%;"><input type="number" inputmode="decimal" id="add-pack-qty" placeholder="Qtd Usada (un)"></div>
+                        <button class="btn btn-primary" onclick="addPackToRecipe(${id})" style="flex:1; min-width: 100%;"><i class="fa-solid fa-plus"></i> Adicionar Embalagem</button>
                     </div>
                     <div style="background:white; padding:10px; margin-bottom:20px;">${packListHtml}</div>
 
@@ -1014,6 +1053,7 @@
                 </div>
             `;
             document.getElementById('recipes-list').innerHTML = html;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Generic Field Updater
@@ -1035,7 +1075,6 @@
             else if(originalUnit) unitSelect.value = originalUnit;
         }
 
-        // Add/Remove Ing
         function addIngToRecipe(recipeId) {
             const select = document.getElementById('add-ing-select');
             const qty = document.getElementById('add-ing-qty').value;
@@ -1056,7 +1095,6 @@
             if(field === 'unit') r.ingredients[index].unit = val;
         }
 
-        // Add/Remove Pack
         function addPackToRecipe(recipeId) {
             const select = document.getElementById('add-pack-select');
             const qty = document.getElementById('add-pack-qty').value;
@@ -1109,12 +1147,11 @@
                 });
             }
 
-            const yieldVal = recipe.yield || 1; // Prevent div by 0
+            const yieldVal = recipe.yield || 1; 
 
             const onlyIngredientsCostPerUnit = rawIngredientsBatchCost / yieldVal;
             const packagingCostPerUnit = packagingBatchCost / yieldVal;
             
-            // Waste applied only to ingredients
             const wasteValuePerUnit = onlyIngredientsCostPerUnit * (appData.settings.wasteMargin / 100);
             const utilityCostPerUnit = appData.settings.utilityCost / yieldVal;
             
@@ -1126,7 +1163,6 @@
             const marginDecimal = appData.settings.profitMargin / 100;
             let suggestedPrice = marginDecimal < 1 ? totalUnitCost / (1 - marginDecimal) : totalUnitCost * (1 + marginDecimal);
             
-            // iFood Calculation 
             const ifoodDecimal = (appData.settings.ifoodFee || 0) / 100;
             let iFoodPrice = 0;
             if(ifoodDecimal < 1) {
@@ -1172,7 +1208,6 @@
             });
         }
 
-        // --- NEW GOAL CALCULATOR ---
         function calculateGoal() {
             const fixedCost = parseFloat(document.getElementById('home-fixed-cost').value) || 0;
             const targetPrice = parseFloat(document.getElementById('home-target-price').value) || 0;

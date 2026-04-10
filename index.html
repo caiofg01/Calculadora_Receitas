@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GelaCost PRO - Gestão de Produtos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a56db;
+            --primary-light: #eef2ff;
+            --bg: #f8f9fa;
+            --surface: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --border: #e5e7eb;
+            --ifood: #ea1d2c;
+            --ifood-light: #fce7e7;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 40px; }
+
+        /* Header */
+        header {
+            background: var(--surface);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        
+        .logo-icon {
+            background: #111827;
+            color: white;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 1.2rem;
+        }
+        .logo-text { font-size: 1.5rem; font-weight: 800; color: #111827; }
+        .logo-text span { color: var(--primary); }
+
+        .btn-header {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+            border: 1px solid var(--primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-header:hover { background: var(--primary); color: white; }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            display: none; justify-content: center; align-items: center;
+        }
+        .modal-box {
+            background: white; padding: 30px; border-radius: 12px;
+            width: 90%; max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-height: 90vh; overflow-y: auto;
+        }
+
+        /* Navigation */
+        .nav-container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: var(--surface);
+            padding: 10px;
+            border-radius: 50px;
+            display: flex;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+        }
+        .nav-btn {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .nav-btn.active { background: #111827; color: white; }
+        .nav-btn:hover:not(.active) { background: var(--bg); color: var(--primary); }
+
+        /* Content Area */
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+        .view { display: none; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Cards & Grids */
+        .card {
+            background: var(--surface);
+            padding: 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        
+        .grid-recipe-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Typography & Elements */
+        h2 { margin-bottom: 20px; font-size: 1.25rem; color: #111827; }
+        .category-header { font-size: 1.2rem; color: var(--primary); margin: 30px 0 15px 0; display:flex; align-items:center; gap:10px; border-bottom: 2px solid var(--primary-light); padding-bottom: 5px; }
+        .label { font-size: 0.75rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: block; }
+        .value { font-size: 1.5rem; font-weight: 700; color: #111827; }
+        .sub-text { font-size: 0.875rem; color: var(--text-light); margin-top: 4px; }
+        
+        /* Inputs */
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #f9fafb;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--primary); background: white; }
+        
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #1e40af; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: white; color: var(--danger); border: 1px solid var(--danger); }
+        .btn-danger:hover { background: #fef2f2; }
+        .btn-secondary { background: #e5e7eb; color: var(--text); }
+        .btn-secondary:hover { background: #d1d5db; }
+        .btn-icon { background: none; border: none; cursor: pointer; color: var(--text-light); transition: 0.2s; }
+        .btn-icon:hover { color: var(--primary); }
+
+        /* Specific Modules */
+        .ingredient-card { position: relative; }
+        .card-actions { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; }
+
+        .price-tag { background: var(--success-light); color: var(--success); padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 1.2rem; }
+        .price-tag-ifood { background: var(--ifood-light); color: var(--ifood); padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 1.2rem; }
+        .badge-category { background: #f3f4f6; color: #4b5563; font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; font-weight: bold; text-transform: uppercase;}
+
+        .recipe-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        
+        .form-section {
+            background: var(--primary-light);
+            border: 2px dashed var(--primary);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+            display: none; 
+        }
+
+        .mini-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        .mini-table th {
+            text-align: left;
+            color: var(--text-light);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            padding: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .mini-table td { padding: 8px; border-bottom: 1px solid #f3f4f6; color: var(--text); }
+        .mini-table tfoot td { border-top: 2px solid var(--border); border-bottom: none; font-weight: 700; color: #111827; background: #f3f4f6; }
+        .mini-table tr:last-child td { border-bottom: none; }
+
+        /* Meta Display */
+        .meta-box {
+            background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <div class="logo-icon"><i class="fa-solid fa-calculator"></i></div>
+            <div class="logo-text">GelaCost <span>PRO</span></div>
+        </div>
+        <button class="btn-header" onclick="toggleDataModal()">
+            <i class="fa-solid fa-floppy-disk"></i> Salvar/Carregar
+        </button>
+    </header>
+
+    <div id="data-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 style="color:var(--primary)">Gerenciar Dados</h2>
+            <p class="sub-text" style="margin-bottom:25px">Faça backup ou restaure suas receitas e insumos.</p>
+            
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <button class="btn btn-primary" onclick="downloadBackup()" style="justify-content:center; padding:15px;">
+                    <i class="fa-solid fa-download"></i> Baixar Backup
+                </button>
+                <button class="btn btn-secondary" onclick="triggerImport()" style="justify-content:center; padding:15px;">
+                    <i class="fa-solid fa-upload"></i> Carregar Backup
+                </button>
+                <input type="file" id="import-file" style="display:none" accept=".json" onchange="processImportFile(this)">
+                <button class="btn" onclick="toggleDataModal()" style="margin-top:10px; justify-content:center; color:var(--text-light)">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-container">
+        <button class="nav-btn active" onclick="showView('home')"><i class="fa-solid fa-chart-line"></i> Home</button>
+        <button class="nav-btn" onclick="showView('catalog')"><i class="fa-solid fa-basket-shopping"></i> Ingredientes</button>
+        <button class="nav-btn" onclick="showView('packaging')"><i class="fa-solid fa-box-open"></i> Embalagens/Insumos</button>
+        <button class="nav-btn" onclick="showView('recipes')"><i class="fa-solid fa-clipboard-list"></i> Receitas</button>
+        <button class="nav-btn" onclick="showView('options')"><i class="fa-solid fa-gear"></i> Opções</button>
+    </div>
+
+    <div class="container">
+
+        <div id="home" class="view active">
+            <div class="card" style="border: 2px solid var(--primary-light);">
+                <h2 style="color: var(--primary);"><i class="fa-solid fa-bullseye"></i> Simulador de Metas</h2>
+                <p class="sub-text" style="margin-bottom: 20px;">Descubra sua meta de vendas para pagar todas as contas do mês.</p>
+                
+                <div class="grid-2">
+                    <div>
+                        <span class="label">Total Despesas Fixas (Luz, Aluguel, MEI, etc)</span>
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <span style="font-weight: bold; color: var(--text-light);">R$</span>
+                            <input type="number" id="home-fixed-cost" placeholder="0.00" onchange="calculateGoal()" style="font-weight: bold; font-size: 1.1rem;">
+                        </div>
+                    </div>
+                    <div>
+                        <span class="label">Preço de Venda Médio Unitário</span>
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <span style="font-weight: bold; color: var(--text-light);">R$</span>
+                            <input type="number" id="home-target-price" placeholder="0.00" onchange="calculateGoal()" style="font-weight: bold; font-size: 1.1rem;">
+                        </div>
+                    </div>
+                </div>
+                <div id="meta-result-area"></div>
+            </div>
+
+            <div class="card">
+                <h2>Resumo Geral de Rentabilidade</h2>
+                <div id="dashboard-list"></div>
+            </div>
+        </div>
+
+        <!-- INGREDINTES -->
+        <div id="catalog" class="view">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Ingredientes da Receita</h2>
+                <button class="btn btn-primary" onclick="toggleIngForm()"><i class="fa-solid fa-plus"></i> Novo Ingrediente</button>
+            </div>
+            
+            <div id="new-ingredient-form" class="form-section">
+                <h3 style="margin-bottom: 15px; color: var(--primary);" id="form-title">Adicionar Ingrediente</h3>
+                <input type="hidden" id="edit-ing-id">
+                
+                <div class="grid-2" style="margin-bottom: 15px;">
+                    <div>
+                        <span class="label">Nome do Item</span>
+                        <input type="text" id="new-ing-name" placeholder="Ex: Leite Condensado">
+                    </div>
+                    <div>
+                        <span class="label">Preço Pago (R$)</span>
+                        <input type="number" id="new-ing-price" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="grid-2" style="margin-bottom: 15px;">
+                    <div>
+                        <span class="label">Qtd na Embalagem Fechada</span>
+                        <input type="number" id="new-ing-qty" placeholder="Ex: 395">
+                    </div>
+                    <div>
+                        <span class="label">Unidade da Embalagem</span>
+                        <select id="new-ing-unit">
+                            <option value="kg">Quilograma (kg)</option>
+                            <option value="g">Gramas (g)</option>
+                            <option value="l">Litro (L)</option>
+                            <option value="ml">Mililitros (ml)</option>
+                            <option value="un">Unidade (un)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content: flex-end; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="toggleIngForm()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="saveNewIngredient()">Salvar Item</button>
+                </div>
+            </div>
+
+            <p class="sub-text" style="margin-bottom: 20px;">Estoque: Matérias-primas que vão DENTRO do produto.</p>
+            <div id="ingredients-grid" class="grid-3"></div>
+        </div>
+
+        <!-- EMBALAGENS (NOVO) -->
+        <div id="packaging" class="view">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Embalagens & Insumos</h2>
+                <button class="btn btn-primary" onclick="togglePackForm()"><i class="fa-solid fa-plus"></i> Nova Embalagem</button>
+            </div>
+
+            <div id="new-pack-form" class="form-section">
+                <h3 style="margin-bottom: 15px; color: var(--primary);" id="pack-form-title">Adicionar Embalagem</h3>
+                <input type="hidden" id="edit-pack-id">
+                
+                <div class="grid-2" style="margin-bottom: 15px;">
+                    <div>
+                        <span class="label">Nome do Item</span>
+                        <input type="text" id="new-pack-name" placeholder="Ex: Pote 250ml ou Adesivo">
+                    </div>
+                    <div>
+                        <span class="label">Preço Pago no Pacote (R$)</span>
+                        <input type="number" id="new-pack-price" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="grid-2" style="margin-bottom: 15px;">
+                    <div>
+                        <span class="label">Quantas unidades vêm no pacote?</span>
+                        <input type="number" id="new-pack-qty" placeholder="Ex: 100">
+                    </div>
+                </div>
+                <div style="display:flex; justify-content: flex-end; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="togglePackForm()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="saveNewPackaging()">Salvar Embalagem</button>
+                </div>
+            </div>
+
+            <p class="sub-text" style="margin-bottom: 20px;">Estoque: Itens que vão POR FORA do produto (potes, laços, sacos, etiquetas).</p>
+            <div id="packaging-grid" class="grid-3"></div>
+        </div>
+
+        <!-- RECEITAS -->
+        <div id="recipes" class="view">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Catálogo de Produtos e Receitas</h2>
+                <button class="btn btn-primary" onclick="createNewRecipe()"><i class="fa-solid fa-plus"></i> Nova Receita</button>
+            </div>
+            <div id="recipes-list"></div>
+        </div>
+
+        <!-- OPÇÕES -->
+        <div id="options" class="view">
+            <h2>Configurações de Negócio</h2>
+            <div class="grid-3">
+                <div class="card">
+                    <span class="label"><i class="fa-solid fa-store"></i> Taxas de Venda</span>
+                    <br><span class="label">Taxa do iFood / Apps (%)</span>
+                    <input type="number" id="opt-ifood" placeholder="Ex: 12">
+                </div>
+                <div class="card">
+                    <span class="label"><i class="fa-solid fa-fire-burner"></i> Custos Indiretos</span>
+                    <br><span class="label">Luz/Gás/Água por Receita (R$)</span>
+                    <input type="number" id="opt-utility" placeholder="Ex: 2.50">
+                    <p class="sub-text">Custo diluído por batida/receita.</p>
+                </div>
+                <div class="card">
+                    <span class="label"><i class="fa-solid fa-percent"></i> Meta de Lucro</span>
+                    <br><span class="label">Margem de Lucro Desejada (%)</span>
+                    <input type="number" id="opt-margin" placeholder="Ex: 50">
+                </div>
+                <div class="card">
+                    <span class="label"><i class="fa-solid fa-trash-can"></i> Desperdício</span>
+                    <br><span class="label">Margem de Perda (%)</span>
+                    <input type="number" id="opt-waste" placeholder="Ex: 5" value="0">
+                </div>
+            </div>
+            <button class="btn btn-success" style="width: 100%; padding: 15px; margin-top: 10px;" onclick="saveOptionsManual()">
+                <i class="fa-solid fa-save"></i> Salvar Configurações Globais
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA STRUCTURE ---
+        let appData = {
+            ingredients: [
+                { id: 1, name: 'Leite Condensado', price: 6.50, qty: 395, unit: 'g' },
+                { id: 2, name: 'Leite Integral', price: 4.80, qty: 1, unit: 'l' }
+            ],
+            packaging: [
+                { id: 101, name: 'Saquinho Interno', price: 5.00, qty: 100 },
+                { id: 102, name: 'Etiqueta Adesiva', price: 12.00, qty: 50 }
+            ],
+            categories: [
+                { id: 1, name: 'Geladinhos Gourmet' },
+                { id: 2, name: 'Doces Gerais' }
+            ],
+            settings: {
+                utilityCost: 2.50,
+                profitMargin: 50,
+                wasteMargin: 0,
+                monthlyFixed: 0, 
+                targetPrice: 0,
+                ifoodFee: 12
+            },
+            recipes: []
+        };
+
+        // --- INIT & PERSISTENCE ---
+        function init() {
+            const saved = localStorage.getItem('gelaCostData');
+            if (saved) {
+                let parsed = JSON.parse(saved);
+                
+                // MIGRATION SCRIPT: from old packaging object to new array
+                if (parsed.packaging && !Array.isArray(parsed.packaging)) {
+                    let newPackArray = [];
+                    let p = parsed.packaging;
+                    if(p.inner) newPackArray.push({id: 101, name: 'Saquinho Interno', price: p.inner.price || 0, qty: p.inner.qty || 1});
+                    if(p.outer) newPackArray.push({id: 102, name: 'Saquinho Externo', price: p.outer.price || 0, qty: p.outer.qty || 1});
+                    if(p.label) newPackArray.push({id: 103, name: 'Etiqueta', price: p.label.price || 0, qty: p.label.qty || 1});
+                    
+                    parsed.packaging = newPackArray;
+
+                    // Migrate recipes to include these default packaging per yield unit
+                    if(parsed.recipes) {
+                        parsed.recipes.forEach(r => {
+                            r.packaging = newPackArray.map(pack => ({ id: pack.id, qty: r.yield || 1 }));
+                            r.categoryId = 1; 
+                        });
+                    }
+                }
+
+                // Add default categories if missing
+                if (!parsed.categories || parsed.categories.length === 0) {
+                    parsed.categories = [{ id: 1, name: 'Geral' }];
+                }
+
+                // Clean old settings
+                if (typeof parsed.settings.targetPrice === 'undefined') parsed.settings.targetPrice = 0;
+                if (typeof parsed.settings.ifoodFee === 'undefined') parsed.settings.ifoodFee = 12;
+
+                appData = parsed;
+            }
+            
+            populateInputs();
+            renderIngredients();
+            renderPackaging();
+            renderRecipes();
+            renderDashboard();
+            calculateGoal(); 
+        }
+
+        function saveData() {
+            localStorage.setItem('gelaCostData', JSON.stringify(appData));
+        }
+
+        function saveOptionsManual() {
+            appData.settings.utilityCost = parseFloat(document.getElementById('opt-utility').value) || 0;
+            appData.settings.profitMargin = parseFloat(document.getElementById('opt-margin').value) || 0;
+            appData.settings.wasteMargin = parseFloat(document.getElementById('opt-waste').value) || 0;
+            appData.settings.ifoodFee = parseFloat(document.getElementById('opt-ifood').value) || 0;
+            
+            saveData();
+            alert("Configurações salvas com sucesso!");
+            renderRecipes();
+            calculateGoal(); 
+        }
+
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(viewId === 'home') {
+                renderDashboard();
+                calculateGoal();
+            }
+        }
+
+        function formatCurrency(val) { return "R$ " + val.toFixed(2); }
+        function generateId() { return Date.now(); }
+
+        function populateInputs() {
+            document.getElementById('opt-utility').value = appData.settings.utilityCost;
+            document.getElementById('opt-margin').value = appData.settings.profitMargin;
+            document.getElementById('opt-waste').value = appData.settings.wasteMargin;
+            document.getElementById('opt-ifood').value = appData.settings.ifoodFee;
+
+            document.getElementById('home-fixed-cost').value = appData.settings.monthlyFixed;
+            document.getElementById('home-target-price').value = appData.settings.targetPrice;
+        }
+
+        // --- BACKUP SYSTEM ---
+        function toggleDataModal() {
+            const modal = document.getElementById('data-modal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function downloadBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "backup_gelacost.json");
+            document.body.appendChild(downloadAnchorNode); 
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            
+            alert("Backup baixado com sucesso! Guarde este arquivo em local seguro.");
+            toggleDataModal();
+        }
+
+        function triggerImport() { document.getElementById('import-file').click(); }
+
+        function processImportFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.ingredients && data.recipes && data.settings) {
+                        appData = data;
+                        saveData();
+                        init(); 
+                        alert("Dados carregados com sucesso!");
+                        toggleDataModal();
+                    } else {
+                        alert("Erro: Arquivo inválido ou corrompido.");
+                    }
+                } catch (err) {
+                    alert("Erro ao ler o arquivo.");
+                }
+            };
+            reader.readAsText(file);
+            input.value = ''; 
+        }
+
+        // --- INGREDIENTS LOGIC ---
+        function toggleIngForm() {
+            const form = document.getElementById('new-ingredient-form');
+            const hiddenId = document.getElementById('edit-ing-id');
+            const title = document.getElementById('form-title');
+            
+            if(form.style.display === 'block' && !hiddenId.value) { form.style.display = 'none'; return; }
+            form.style.display = 'block';
+            title.innerText = "Adicionar Ingrediente";
+            hiddenId.value = '';
+            document.getElementById('new-ing-name').value = '';
+            document.getElementById('new-ing-price').value = '';
+            document.getElementById('new-ing-qty').value = '';
+            document.getElementById('new-ing-unit').value = 'kg';
+        }
+
+        function editIngredient(id) {
+            const ing = appData.ingredients.find(i => i.id === id);
+            if(!ing) return;
+            const form = document.getElementById('new-ingredient-form');
+            form.style.display = 'block';
+            document.getElementById('form-title').innerText = "Editar Ingrediente";
+            document.getElementById('edit-ing-id').value = ing.id;
+            document.getElementById('new-ing-name').value = ing.name;
+            document.getElementById('new-ing-price').value = ing.price;
+            document.getElementById('new-ing-qty').value = ing.qty;
+            document.getElementById('new-ing-unit').value = ing.unit;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function saveNewIngredient() {
+            const id = document.getElementById('edit-ing-id').value;
+            const name = document.getElementById('new-ing-name').value;
+            const price = parseFloat(document.getElementById('new-ing-price').value);
+            const qty = parseFloat(document.getElementById('new-ing-qty').value);
+            const unit = document.getElementById('new-ing-unit').value;
+
+            if (!name || isNaN(price) || isNaN(qty)) { alert("Preencha todos os campos."); return; }
+
+            if (id) {
+                const index = appData.ingredients.findIndex(i => i.id == id);
+                if(index !== -1) appData.ingredients[index] = { id: parseInt(id), name, price, qty, unit };
+            } else {
+                appData.ingredients.push({ id: generateId(), name, price, qty, unit });
+            }
+            saveData();
+            renderIngredients();
+            document.getElementById('new-ingredient-form').style.display = 'none';
+        }
+
+        function renderIngredients() {
+            const grid = document.getElementById('ingredients-grid');
+            grid.innerHTML = '';
+            appData.ingredients.forEach(ing => {
+                const unitDisplay = ing.unit === 'l' ? 'L' : ing.unit;
+                grid.innerHTML += `
+                    <div class="card ingredient-card">
+                        <div class="card-actions">
+                            <button class="btn-icon" onclick="editIngredient(${ing.id})" title="Editar"><i class="fa-solid fa-pencil"></i></button>
+                            <button class="btn-icon" onclick="deleteIngredient(${ing.id})" title="Excluir" style="color:#ef4444"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <h3 style="margin-bottom:15px; padding-right:50px;">${ing.name}</h3>
+                        <div class="grid-2">
+                            <div style="background:#f3f4f6; padding:8px; border-radius:6px;">
+                                <div class="label">Pago</div>
+                                <div style="font-weight:600">R$ ${ing.price.toFixed(2)}</div>
+                            </div>
+                            <div style="background:#f3f4f6; padding:8px; border-radius:6px;">
+                                <div class="label">Pacote</div>
+                                <div style="font-weight:600">${ing.qty} ${unitDisplay}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function deleteIngredient(id) {
+            if(confirm("Remover este ingrediente?")) {
+                appData.ingredients = appData.ingredients.filter(i => i.id !== id);
+                saveData();
+                renderIngredients();
+            }
+        }
+
+        // --- PACKAGING LOGIC (NEW) ---
+        function togglePackForm() {
+            const form = document.getElementById('new-pack-form');
+            const hiddenId = document.getElementById('edit-pack-id');
+            if(form.style.display === 'block' && !hiddenId.value) { form.style.display = 'none'; return; }
+            form.style.display = 'block';
+            document.getElementById('pack-form-title').innerText = "Adicionar Embalagem/Insumo";
+            hiddenId.value = '';
+            document.getElementById('new-pack-name').value = '';
+            document.getElementById('new-pack-price').value = '';
+            document.getElementById('new-pack-qty').value = '';
+        }
+
+        function editPack(id) {
+            const p = appData.packaging.find(i => i.id === id);
+            if(!p) return;
+            const form = document.getElementById('new-pack-form');
+            form.style.display = 'block';
+            document.getElementById('pack-form-title').innerText = "Editar Embalagem";
+            document.getElementById('edit-pack-id').value = p.id;
+            document.getElementById('new-pack-name').value = p.name;
+            document.getElementById('new-pack-price').value = p.price;
+            document.getElementById('new-pack-qty').value = p.qty;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function saveNewPackaging() {
+            const id = document.getElementById('edit-pack-id').value;
+            const name = document.getElementById('new-pack-name').value;
+            const price = parseFloat(document.getElementById('new-pack-price').value);
+            const qty = parseFloat(document.getElementById('new-pack-qty').value);
+
+            if (!name || isNaN(price) || isNaN(qty)) { alert("Preencha todos os campos."); return; }
+
+            if (id) {
+                const index = appData.packaging.findIndex(i => i.id == id);
+                if(index !== -1) appData.packaging[index] = { id: parseInt(id), name, price, qty };
+            } else {
+                appData.packaging.push({ id: generateId(), name, price, qty });
+            }
+            saveData();
+            renderPackaging();
+            document.getElementById('new-pack-form').style.display = 'none';
+        }
+
+        function deletePack(id) {
+            if(confirm("Remover esta embalagem? As receitas que a utilizam poderão ficar sem o cálculo dela.")) {
+                appData.packaging = appData.packaging.filter(i => i.id !== id);
+                // Note: We don't forcefully remove it from recipes here so the user can see what broke, or we could. Let's just leave it, calculateRecipeCosts handles missing ids gracefully (adds 0 cost).
+                saveData();
+                renderPackaging();
+            }
+        }
+
+        function renderPackaging() {
+            const grid = document.getElementById('packaging-grid');
+            grid.innerHTML = '';
+            appData.packaging.forEach(p => {
+                const unitPrice = p.price / p.qty;
+                grid.innerHTML += `
+                    <div class="card ingredient-card">
+                        <div class="card-actions">
+                            <button class="btn-icon" onclick="editPack(${p.id})" title="Editar"><i class="fa-solid fa-pencil"></i></button>
+                            <button class="btn-icon" onclick="deletePack(${p.id})" title="Excluir" style="color:#ef4444"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <h3 style="margin-bottom:15px; padding-right:50px;">${p.name}</h3>
+                        <div class="grid-2" style="margin-bottom: 10px;">
+                            <div style="background:#f3f4f6; padding:8px; border-radius:6px;">
+                                <div class="label">Pacote</div>
+                                <div style="font-weight:600">R$ ${p.price.toFixed(2)}</div>
+                            </div>
+                            <div style="background:#f3f4f6; padding:8px; border-radius:6px;">
+                                <div class="label">Rendimento</div>
+                                <div style="font-weight:600">${p.qty} un</div>
+                            </div>
+                        </div>
+                        <div class="sub-text">Custo Unitário: <strong>${formatCurrency(unitPrice)}</strong></div>
+                    </div>
+                `;
+            });
+        }
+
+
+        // --- CATEGORIES LOGIC ---
+        function getCategoryName(id) {
+            const cat = appData.categories.find(c => c.id == id);
+            return cat ? cat.name : 'Sem Categoria';
+        }
+
+        function addCategory() {
+            const name = prompt("Digite o nome da nova categoria:");
+            if(name && name.trim() !== '') {
+                const newCat = { id: generateId(), name: name.trim() };
+                appData.categories.push(newCat);
+                saveData();
+                return newCat.id;
+            }
+            return null;
+        }
+
+        // --- RECIPE LOGIC ---
+        function renderRecipes() {
+            const container = document.getElementById('recipes-list');
+            container.innerHTML = '';
+
+            // Group recipes by category
+            const grouped = {};
+            appData.recipes.forEach(recipe => {
+                const catId = recipe.categoryId || 1;
+                if(!grouped[catId]) grouped[catId] = [];
+                grouped[catId].push(recipe);
+            });
+
+            if(Object.keys(grouped).length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-light)">Nenhuma receita cadastrada.</div>`;
+                return;
+            }
+
+            for (const catId in grouped) {
+                const catName = getCategoryName(catId);
+                
+                // Category Header
+                container.innerHTML += `
+                    <div class="category-header">
+                        <i class="fa-solid fa-layer-group"></i> ${catName}
+                    </div>
+                `;
+
+                // Recipes in this category
+                grouped[catId].forEach(recipe => {
+                    const calc = calculateRecipeCosts(recipe);
+                    let detailsHtml = '';
+                    
+                    // Ingredientes
+                    recipe.ingredients.forEach(rIng => {
+                        const dbIng = appData.ingredients.find(i => i.id == rIng.id);
+                        if(dbIng) {
+                            let stockQtyInSmallest = normalizeToSmallestUnit(dbIng.qty, dbIng.unit);
+                            let pricePerSmallest = dbIng.price / stockQtyInSmallest;
+                            let recipeUnit = rIng.unit || dbIng.unit;
+                            let usageInSmallest = normalizeToSmallestUnit(rIng.qty, recipeUnit);
+                            let cost = pricePerSmallest * usageInSmallest;
+                            const unitDisplay = recipeUnit === 'l' ? 'L' : recipeUnit;
+                            detailsHtml += `<tr><td>${dbIng.name}</td><td>${rIng.qty} ${unitDisplay}</td><td>${formatCurrency(cost)}</td></tr>`;
+                        }
+                    });
+
+                    // Embalagens
+                    if(!recipe.packaging) recipe.packaging = [];
+                    recipe.packaging.forEach(rPack => {
+                        const dbPack = appData.packaging.find(p => p.id == rPack.id);
+                        if(dbPack) {
+                            let cost = (dbPack.price / dbPack.qty) * rPack.qty;
+                            detailsHtml += `<tr><td style="color:var(--primary)"><i class="fa-solid fa-box"></i> ${dbPack.name}</td><td>${rPack.qty} un</td><td style="color:var(--primary)">${formatCurrency(cost)}</td></tr>`;
+                        }
+                    });
+
+                    container.innerHTML += `
+                        <div class="card">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div>
+                                    <h2 style="margin:0">${recipe.name} <span class="badge-category">${catName}</span></h2>
+                                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-light); margin-top: 5px;">Rendimento: ${recipe.yield} unidades</div>
+                                </div>
+                                <div>
+                                    <button class="btn btn-danger" onclick="deleteRecipe(${recipe.id})" style="padding:5px 10px;"><i class="fa-solid fa-trash"></i></button>
+                                    <button class="btn btn-primary" onclick="editRecipe(${recipe.id})">Editar</button>
+                                </div>
+                            </div>
+                            <hr style="margin:15px 0; border-color:var(--border);">
+                            
+                            <div class="grid-recipe-stats">
+                                <div><span class="label">Ingredientes/Un</span>${formatCurrency(calc.onlyIngredientsCost)}</div>
+                                <div><span class="label">Embalagem/Un</span>${formatCurrency(calc.packagingCost)}</div>
+                                <div><span class="label">Custos Adic./Un</span><span style="font-size:0.9rem" title="Gás/Luz + Desperdício">${formatCurrency(calc.additionalCosts)}</span></div>
+                                <div><span class="label" style="color:var(--primary)">Custo Unitário</span><strong style="color:var(--primary)">${formatCurrency(calc.totalUnitCost)}</strong></div>
+                                <div><span class="label">Preço Sugerido</span><span class="price-tag">${formatCurrency(calc.suggestedPrice)}</span></div>
+                                <div><span class="label" style="color:var(--ifood)">Preço iFood (+${appData.settings.ifoodFee}%)</span><span class="price-tag-ifood">${formatCurrency(calc.iFoodPrice)}</span></div>
+                            </div>
+
+                            <div style="background: #f9fafb; padding: 15px; border-radius: 8px;">
+                                <span class="label">Detalhamento Financeiro (Receita Inteira / Lote)</span>
+                                <table class="mini-table">
+                                    <thead><tr><th>Item</th><th>Qtd Usada na Receita</th><th>Custo Total</th></tr></thead>
+                                    <tbody>${detailsHtml}</tbody>
+                                    <tfoot><tr><td colspan="2">CUSTO TOTAL DO LOTE (${recipe.yield} un)</td><td>${formatCurrency(calc.totalBatchCost)}</td></tr></tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        function createNewRecipe() {
+            const name = prompt("Nome do Produto/Receita:");
+            if (!name) return;
+            
+            // Set default category to 1
+            const newRecipe = { id: generateId(), name: name, categoryId: 1, time: 30, yield: 10, ingredients: [], packaging: [] };
+            appData.recipes.push(newRecipe);
+            saveData();
+            renderRecipes();
+            editRecipe(newRecipe.id);
+        }
+
+        function deleteRecipe(id) {
+            if(confirm("Excluir esta receita?")) {
+                appData.recipes = appData.recipes.filter(r => r.id !== id);
+                saveData();
+                renderRecipes();
+            }
+        }
+
+        function handleCategoryChange(selectElement, recipeId) {
+            if(selectElement.value === 'new') {
+                const newId = addCategory();
+                if(newId) {
+                    // Reload edit screen to show new category
+                    appData.recipes.find(r=>r.id===recipeId).categoryId = newId;
+                    saveData();
+                    editRecipe(recipeId);
+                } else {
+                    // Revert selection
+                    selectElement.value = appData.recipes.find(r=>r.id===recipeId).categoryId;
+                }
+            } else {
+                updateRecipeField(recipeId, 'categoryId', selectElement.value);
+            }
+        }
+
+        function editRecipe(id) {
+            const recipe = appData.recipes.find(r => r.id === id);
+            if (!recipe) return;
+            if(!recipe.packaging) recipe.packaging = [];
+
+            // Category Options
+            let catOptionsHtml = '';
+            appData.categories.forEach(cat => {
+                catOptionsHtml += `<option value="${cat.id}" ${recipe.categoryId == cat.id ? 'selected' : ''}>${cat.name}</option>`;
+            });
+            catOptionsHtml += `<option value="new" style="font-weight:bold; color:var(--primary);">+ Criar Nova Categoria</option>`;
+
+
+            // Ingredients Options
+            let ingOptionsHtml = '<option value="">-- Selecione o Ingrediente --</option>';
+            appData.ingredients.forEach(ing => {
+                const unitDisplay = ing.unit === 'l' ? 'L' : ing.unit;
+                ingOptionsHtml += `<option value="${ing.id}" data-unit="${ing.unit}">${ing.name} (Cadastrado em: ${unitDisplay})</option>`;
+            });
+
+            // Packaging Options
+            let packOptionsHtml = '<option value="">-- Selecione a Embalagem --</option>';
+            appData.packaging.forEach(p => {
+                packOptionsHtml += `<option value="${p.id}">${p.name} (Pacote c/ ${p.qty})</option>`;
+            });
+
+            // Active Ingredients List
+            let ingListHtml = '';
+            recipe.ingredients.forEach((rIng, index) => {
+                const ingRef = appData.ingredients.find(i => i.id == rIng.id);
+                const ingName = ingRef ? ingRef.name : "Item Excluído";
+                const currentUnit = rIng.unit || (ingRef ? ingRef.unit : 'un'); 
+                ingListHtml += `
+                    <div class="recipe-item">
+                        <span style="flex:1">${ingName}</span>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <input type="number" value="${rIng.qty}" style="width:70px; padding:5px;" onchange="updateRecipeIng(${id}, ${index}, 'qty', this.value)">
+                            <select style="width:70px; padding:5px;" onchange="updateRecipeIng(${id}, ${index}, 'unit', this.value)">
+                                <option value="g" ${currentUnit === 'g' ? 'selected' : ''}>g</option>
+                                <option value="kg" ${currentUnit === 'kg' ? 'selected' : ''}>kg</option>
+                                <option value="ml" ${currentUnit === 'ml' ? 'selected' : ''}>ml</option>
+                                <option value="l" ${currentUnit === 'l' ? 'selected' : ''}>L</option>
+                                <option value="un" ${currentUnit === 'un' ? 'selected' : ''}>un</option>
+                            </select>
+                            <button onclick="removeRecipeIng(${id}, ${index})" style="color:red; border:none; background:none; cursor:pointer;"><i class="fa-solid fa-times"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Active Packaging List
+            let packListHtml = '';
+            recipe.packaging.forEach((rPack, index) => {
+                const packRef = appData.packaging.find(i => i.id == rPack.id);
+                const packName = packRef ? packRef.name : "Item Excluído";
+                packListHtml += `
+                    <div class="recipe-item">
+                        <span style="flex:1"><i class="fa-solid fa-box" style="color:var(--text-light)"></i> ${packName}</span>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <input type="number" value="${rPack.qty}" style="width:80px; padding:5px;" onchange="updateRecipePack(${id}, ${index}, this.value)" title="Quantas unidades usadas nesta receita inteira?">
+                            <span style="font-size:0.8rem; color:var(--text-light); width:30px;">un</span>
+                            <button onclick="removeRecipePack(${id}, ${index})" style="color:red; border:none; background:none; cursor:pointer;"><i class="fa-solid fa-times"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const html = `
+                <div style="background:white; padding:20px; border-radius:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3>Editando Produto</h3>
+                        <select onchange="handleCategoryChange(this, ${id})" style="width:200px; padding:8px;">
+                            ${catOptionsHtml}
+                        </select>
+                    </div>
+
+                    <span class="label">Nome da Receita / Produto</span>
+                    <input type="text" id="edit-recipe-name" value="${recipe.name}" style="font-weight:bold; font-size:1.1rem; margin-bottom:15px;" onchange="updateRecipeField(${id}, 'name', this.value)">
+                    
+                    <div class="grid-2" style="margin-bottom:20px;">
+                        <div style="background:var(--primary-light); padding:10px; border-radius:8px; border:1px solid #c7d2fe;">
+                            <span class="label" style="color:var(--primary)">Rendimento da Receita (Unidades)</span>
+                            <input type="number" id="edit-yield" value="${recipe.yield}" style="font-size:1.2rem; font-weight:bold;" onchange="updateRecipeField(${id}, 'yield', this.value)">
+                            <p class="sub-text">Tudo abaixo será calculado com base neste número.</p>
+                        </div>
+                    </div>
+
+                    <!-- INGREDIENTES SECTION -->
+                    <h4 style="margin-top:20px; border-bottom:1px solid var(--border); padding-bottom:5px;">1. Ingredientes (Custo Variável)</h4>
+                    <p class="sub-text">O que vai DENTRO do produto.</p>
+                    <div style="display:flex; gap:10px; margin-top:10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px; border:1px solid var(--border);">
+                        <div style="flex: 2"><select id="add-ing-select" onchange="suggestUnit()">${ingOptionsHtml}</select></div>
+                        <div style="flex: 1"><input type="number" id="add-ing-qty" placeholder="Qtd"></div>
+                        <div style="flex: 1"><select id="add-ing-unit"><option value="g">g</option><option value="ml">ml</option><option value="kg">kg</option><option value="l">L</option><option value="un">un</option></select></div>
+                        <button class="btn btn-primary" onclick="addIngToRecipe(${id})"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <div style="background:white; padding:10px; margin-bottom:20px;">${ingListHtml}</div>
+
+                    <!-- EMBALAGENS SECTION -->
+                    <h4 style="margin-top:20px; border-bottom:1px solid var(--border); padding-bottom:5px;">2. Embalagens e Insumos (Custo Fixo)</h4>
+                    <p class="sub-text">Quantas unidades de embalagem você usa para o <strong>rendimento total</strong> dessa receita? (Ex: Se rende 10 bolos, use 10 potes).</p>
+                    <div style="display:flex; gap:10px; margin-top:10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px; border:1px solid var(--border);">
+                        <div style="flex: 2"><select id="add-pack-select">${packOptionsHtml}</select></div>
+                        <div style="flex: 1"><input type="number" id="add-pack-qty" placeholder="Qtd Usada (un)"></div>
+                        <button class="btn btn-primary" onclick="addPackToRecipe(${id})"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <div style="background:white; padding:10px; margin-bottom:20px;">${packListHtml}</div>
+
+                    <button class="btn btn-success" style="width:100%; padding:15px; font-size:1.1rem;" onclick="saveRecipeDetails(${id})"><i class="fa-solid fa-check"></i> Concluir Edição</button>
+                </div>
+            `;
+            document.getElementById('recipes-list').innerHTML = html;
+        }
+
+        // Generic Field Updater
+        function updateRecipeField(recipeId, field, val) {
+            const recipe = appData.recipes.find(r => r.id === recipeId);
+            if(field === 'yield') recipe.yield = parseFloat(val);
+            if(field === 'name') recipe.name = val;
+            if(field === 'categoryId') recipe.categoryId = parseInt(val);
+        }
+
+        function suggestUnit() {
+            const select = document.getElementById('add-ing-select');
+            const unitSelect = document.getElementById('add-ing-unit');
+            const option = select.options[select.selectedIndex];
+            if(!option) return;
+            const originalUnit = option.getAttribute('data-unit');
+            if(originalUnit === 'kg') unitSelect.value = 'g';
+            else if(originalUnit === 'l') unitSelect.value = 'ml';
+            else if(originalUnit) unitSelect.value = originalUnit;
+        }
+
+        // Add/Remove Ing
+        function addIngToRecipe(recipeId) {
+            const select = document.getElementById('add-ing-select');
+            const qty = document.getElementById('add-ing-qty').value;
+            const unit = document.getElementById('add-ing-unit').value;
+            const ingId = select.value;
+            if (ingId && qty) {
+                appData.recipes.find(r => r.id === recipeId).ingredients.push({ id: parseInt(ingId), qty: parseFloat(qty), unit: unit });
+                saveData(); editRecipe(recipeId);
+            }
+        }
+        function removeRecipeIng(recipeId, index) {
+            appData.recipes.find(r => r.id === recipeId).ingredients.splice(index, 1);
+            saveData(); editRecipe(recipeId);
+        }
+        function updateRecipeIng(recipeId, index, field, val) {
+            const r = appData.recipes.find(r => r.id === recipeId);
+            if(field === 'qty') r.ingredients[index].qty = parseFloat(val);
+            if(field === 'unit') r.ingredients[index].unit = val;
+        }
+
+        // Add/Remove Pack
+        function addPackToRecipe(recipeId) {
+            const select = document.getElementById('add-pack-select');
+            const qty = document.getElementById('add-pack-qty').value;
+            const packId = select.value;
+            if (packId && qty) {
+                appData.recipes.find(r => r.id === recipeId).packaging.push({ id: parseInt(packId), qty: parseFloat(qty) });
+                saveData(); editRecipe(recipeId);
+            }
+        }
+        function removeRecipePack(recipeId, index) {
+            appData.recipes.find(r => r.id === recipeId).packaging.splice(index, 1);
+            saveData(); editRecipe(recipeId);
+        }
+        function updateRecipePack(recipeId, index, val) {
+            appData.recipes.find(r => r.id === recipeId).packaging[index].qty = parseFloat(val);
+        }
+
+        function saveRecipeDetails(recipeId) {
+            saveData();
+            renderRecipes();
+        }
+
+        // --- CALCULATION ENGINE ---
+        function normalizeToSmallestUnit(qty, unit) {
+            if (unit === 'kg') return qty * 1000;
+            if (unit === 'l') return qty * 1000;
+            return qty;
+        }
+
+        function calculateRecipeCosts(recipe) {
+            let rawIngredientsBatchCost = 0;
+            recipe.ingredients.forEach(rIng => {
+                const dbIng = appData.ingredients.find(i => i.id == rIng.id);
+                if (dbIng) {
+                    let stockQtyInSmallest = normalizeToSmallestUnit(dbIng.qty, dbIng.unit);
+                    let pricePerSmallest = dbIng.price / stockQtyInSmallest;
+                    let recipeUnit = rIng.unit || dbIng.unit;
+                    let usageInSmallest = normalizeToSmallestUnit(rIng.qty, recipeUnit);
+                    rawIngredientsBatchCost += (pricePerSmallest * usageInSmallest);
+                }
+            });
+
+            let packagingBatchCost = 0;
+            if(recipe.packaging) {
+                recipe.packaging.forEach(rPack => {
+                    const dbPack = appData.packaging.find(p => p.id == rPack.id);
+                    if(dbPack) {
+                        packagingBatchCost += (dbPack.price / dbPack.qty) * rPack.qty;
+                    }
+                });
+            }
+
+            const yieldVal = recipe.yield || 1; // Prevent div by 0
+
+            const onlyIngredientsCostPerUnit = rawIngredientsBatchCost / yieldVal;
+            const packagingCostPerUnit = packagingBatchCost / yieldVal;
+            
+            // Waste applied only to ingredients
+            const wasteValuePerUnit = onlyIngredientsCostPerUnit * (appData.settings.wasteMargin / 100);
+            const utilityCostPerUnit = appData.settings.utilityCost / yieldVal;
+            
+            const additionalCostsPerUnit = wasteValuePerUnit + utilityCostPerUnit;
+            
+            const totalUnitCost = onlyIngredientsCostPerUnit + packagingCostPerUnit + additionalCostsPerUnit;
+            const totalBatchCost = rawIngredientsBatchCost + packagingBatchCost + (utilityCostPerUnit * yieldVal) + (wasteValuePerUnit * yieldVal);
+
+            const marginDecimal = appData.settings.profitMargin / 100;
+            let suggestedPrice = marginDecimal < 1 ? totalUnitCost / (1 - marginDecimal) : totalUnitCost * (1 + marginDecimal);
+            
+            // iFood Calculation 
+            const ifoodDecimal = (appData.settings.ifoodFee || 0) / 100;
+            let iFoodPrice = 0;
+            if(ifoodDecimal < 1) {
+                iFoodPrice = suggestedPrice / (1 - ifoodDecimal);
+            }
+
+            return {
+                onlyIngredientsCost: onlyIngredientsCostPerUnit,
+                packagingCost: packagingCostPerUnit,
+                additionalCosts: additionalCostsPerUnit,
+                totalUnitCost: totalUnitCost,
+                totalBatchCost: totalBatchCost,
+                suggestedPrice: suggestedPrice,
+                iFoodPrice: iFoodPrice,
+                profitPerUnit: suggestedPrice - totalUnitCost
+            };
+        }
+
+        function renderDashboard() {
+            const list = document.getElementById('dashboard-list');
+            list.innerHTML = `
+                <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr; gap:10px; padding:10px; font-weight:bold; color:var(--text-light); border-bottom:1px solid #ddd; font-size:0.8rem;">
+                    <div>SABOR / PRODUTO</div>
+                    <div>CUSTO</div>
+                    <div>VENDA</div>
+                    <div>iFOOD</div>
+                    <div>LUCRO</div>
+                    <div>MARGEM</div>
+                </div>
+            `;
+            appData.recipes.forEach(recipe => {
+                const calc = calculateRecipeCosts(recipe);
+                list.innerHTML += `
+                     <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr; gap:10px; padding:15px 10px; border-bottom:1px solid #eee; align-items:center;">
+                        <div style="font-weight:600;">${recipe.name}</div>
+                        <div style="color:#6b7280;">${formatCurrency(calc.totalUnitCost)}</div>
+                        <div style="color:var(--primary); font-weight:700; background:#eff6ff; padding:4px 8px; border-radius:4px; width:fit-content;">${formatCurrency(calc.suggestedPrice)}</div>
+                        <div style="color:var(--ifood); font-weight:700;">${formatCurrency(calc.iFoodPrice)}</div>
+                        <div style="color:var(--success); font-weight:700;">${formatCurrency(calc.profitPerUnit)}</div>
+                        <div style="font-size:0.8rem; color:#999;">${appData.settings.profitMargin}%</div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- NEW GOAL CALCULATOR ---
+        function calculateGoal() {
+            const fixedCost = parseFloat(document.getElementById('home-fixed-cost').value) || 0;
+            const targetPrice = parseFloat(document.getElementById('home-target-price').value) || 0;
+            const resultArea = document.getElementById('meta-result-area');
+            
+            appData.settings.monthlyFixed = fixedCost;
+            appData.settings.targetPrice = targetPrice;
+            saveData();
+
+            if(fixedCost <= 0 || targetPrice <= 0) {
+                resultArea.innerHTML = `<div class="sub-text" style="padding:10px;">Preencha os valores acima para calcular.</div>`;
+                return;
+            }
+
+            let totalVarCost = 0;
+            let count = 0;
+            appData.recipes.forEach(r => {
+                totalVarCost += calculateRecipeCosts(r).totalUnitCost;
+                count++;
+            });
+
+            const avgVarCost = count > 0 ? totalVarCost / count : 0;
+            const profitPerUnit = targetPrice - avgVarCost;
+
+            if (profitPerUnit <= 0) {
+                resultArea.innerHTML = `
+                    <div class="meta-box" style="background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger);">
+                        <strong><i class="fa-solid fa-circle-exclamation"></i> Atenção! Preço muito baixo.</strong><br>
+                        Seu custo médio de produção é ${formatCurrency(avgVarCost)}. Com esse preço de venda, você terá prejuízo e nunca pagará as contas.
+                    </div>
+                `;
+                return;
+            }
+
+            const qtyNeeded = Math.ceil(fixedCost / profitPerUnit);
+            
+            resultArea.innerHTML = `
+                <div class="meta-box">
+                    <div style="font-size:0.9rem; opacity:0.9;">Você precisa vender</div>
+                    <div style="font-size:2.5rem; font-weight:800; margin:10px 0;">${qtyNeeded} Unidades</div>
+                    <div style="font-size:0.9rem; opacity:0.9;">por mês para pagar as contas e repor o estoque de matéria-prima.</div>
+                    <div style="font-size:0.75rem; margin-top:15px; opacity:0.7;">
+                        Cálculo inteligente: Considera que cada produto custa em média ${formatCurrency(avgVarCost)} para ser feito.
+                    </div>
+                </div>
+            `;
+        }
+
+        init();
+    </script>
+</body>
+</html>

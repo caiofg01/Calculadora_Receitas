@@ -593,14 +593,20 @@
 
 
         // Função auxiliar para organizar o carregamento
+        // Função auxiliar para organizar o carregamento
         function processarDados(parsed) {
             appData = parsed;
             populateInputs();
             renderIngredients();
             renderPackaging();
-            renderRecipes();
+            
+            // TRAVA DE SEGURANÇA: Só atualiza a lista visual se NÃO estiver editando uma receita
+            if (!document.getElementById('edit-recipe-name')) {
+                renderRecipes();
+            }
+            
             renderDashboard();
-            renderCategoryOptions();
+            if (typeof renderCategoryOptions === 'function') renderCategoryOptions();
             calculateGoal();
         }
 
@@ -753,7 +759,10 @@
         function renderIngredients() {
             const grid = document.getElementById('ingredients-grid');
             grid.innerHTML = '';
-            appData.ingredients.forEach(ing => {
+            // NOVO: Organiza em ordem alfabética
+            const sortedIngs = [...appData.ingredients].sort((a, b) => a.name.localeCompare(b.name));
+            
+            sortedIngs.forEach(ing => {
                 const unitDisplay = ing.unit === 'l' ? 'L' : ing.unit;
                 grid.innerHTML += `
                     <div class="card ingredient-card">
@@ -841,7 +850,10 @@
         function renderPackaging() {
             const grid = document.getElementById('packaging-grid');
             grid.innerHTML = '';
-            appData.packaging.forEach(p => {
+            // NOVO: Organiza em ordem alfabética
+            const sortedPacks = [...appData.packaging].sort((a, b) => a.name.localeCompare(b.name));
+            
+            sortedPacks.forEach(p => {
                 const unitPrice = p.price / p.qty;
                 grid.innerHTML += `
                     <div class="card ingredient-card">
@@ -1121,14 +1133,18 @@
             });
             catOptionsHtml += `<option value="new" style="font-weight:bold; color:var(--primary);">+ Criar Nova Categoria</option>`;
 
+            // ORDENA INGREDIENTES NO SELECT
             let ingOptionsHtml = '<option value="">-- Selecione o Ingrediente --</option>';
-            appData.ingredients.forEach(ing => {
+            const sortedIngDropdown = [...appData.ingredients].sort((a, b) => a.name.localeCompare(b.name));
+            sortedIngDropdown.forEach(ing => {
                 const unitDisplay = ing.unit === 'l' ? 'L' : ing.unit;
                 ingOptionsHtml += `<option value="${ing.id}" data-unit="${ing.unit}">${ing.name} (Cadastrado em: ${unitDisplay})</option>`;
             });
 
+            // ORDENA EMBALAGENS NO SELECT
             let packOptionsHtml = '<option value="">-- Selecione a Embalagem --</option>';
-            appData.packaging.forEach(p => {
+            const sortedPackDropdown = [...appData.packaging].sort((a, b) => a.name.localeCompare(b.name));
+            sortedPackDropdown.forEach(p => {
                 packOptionsHtml += `<option value="${p.id}">${p.name} (Pacote c/ ${p.qty})</option>`;
             });
 

@@ -584,26 +584,7 @@
             recipes: []
         };
 
-        // --- INIT & PERSISTENCE ---
-        function init() {
-            // 1. Carrega o backup local primeiro para a tela não ficar em branco
-            const saved = localStorage.getItem('gelaCostData');
-            if (saved) {
-                processarDados(JSON.parse(saved));
-            }
 
-            // 2. Conecta no Firebase e ESCUTA as mudanças em tempo real
-            docRef.onSnapshot((doc) => {
-                if (doc.exists) {
-                    const dataNaNuvem = doc.data();
-                    localStorage.setItem('gelaCostData', JSON.stringify(dataNaNuvem)); // Atualiza o backup local
-                    processarDados(dataNaNuvem);
-                } else {
-                    // Se o documento não existe (primeira vez rodando), salva o appData padrão
-                    saveData();
-                }
-            });
-        }
 
         // Função auxiliar para organizar o carregamento
         function processarDados(parsed) {
@@ -1368,7 +1349,6 @@
             `;
         }
 
-        init();
     </script>
     </div>
 </body>

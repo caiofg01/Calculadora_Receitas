@@ -482,6 +482,12 @@
             <button class="btn btn-success" style="width: 100%; padding: 15px; margin-top: 10px;" onclick="saveOptionsManual()">
                 <i class="fa-solid fa-save"></i> Salvar Configurações Globais
             </button>
+
+            <hr style="margin: 30px 0; border-color: var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Gerenciar Categorias</h2>
+            </div>
+            <div id="category-list-options"></div>
         </div>
 
     </div>
@@ -594,6 +600,7 @@
             renderPackaging();
             renderRecipes();
             renderDashboard();
+            renderCategoryOptions();
             calculateGoal();
         }
 
@@ -876,6 +883,57 @@
             }
             return null;
         }
+        function renderCategoryOptions() {
+            const list = document.getElementById('category-list-options');
+            if(!list) return;
+            list.innerHTML = '';
+            
+            // Puxa as categorias e as organiza em ordem alfabética
+            const sortedCats = [...appData.categories].sort((a, b) => a.name.localeCompare(b.name));
+            
+            sortedCats.forEach(cat => {
+                list.innerHTML += `
+                    <div class="card" style="padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: bold; font-size: 1.1rem;">${cat.name}</span>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn-icon" onclick="editCategoryName(${cat.id})" title="Editar"><i class="fa-solid fa-pencil"></i></button>
+                            <button class="btn-icon" onclick="deleteCategory(${cat.id})" title="Excluir" style="color: var(--danger);"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function editCategoryName(id) {
+            const cat = appData.categories.find(c => c.id == id);
+            if(!cat) return;
+            const newName = prompt("Editar nome da categoria:", cat.name);
+            if(newName && newName.trim() !== '') {
+                cat.name = newName.trim();
+                saveData();
+                renderCategoryOptions();
+                renderRecipes();
+            }
+        }
+
+        function deleteCategory(id) {
+            if(appData.categories.length <= 1) {
+                alert("O sistema exige pelo menos uma categoria principal.");
+                return;
+            }
+            if(confirm("Deseja realmente excluir esta categoria? Todas as receitas vinculadas a ela serão movidas automaticamente para outra categoria existente.")) {
+                appData.categories = appData.categories.filter(c => c.id !== id);
+                const fallbackId = appData.categories[0].id; // Joga as receitas na primeira categoria que sobrar
+                
+                appData.recipes.forEach(r => {
+                    if(r.categoryId == id) r.categoryId = fallbackId;
+                });
+                
+                saveData();
+                renderCategoryOptions();
+                renderRecipes();
+            }
+        }
 
         // --- RECIPE LOGIC ---
         
@@ -912,7 +970,11 @@
             container.innerHTML = '';
 
             const grouped = {};
-            appData.recipes.forEach(recipe => {
+            
+            // NOVO: Ordena todas as receitas em ordem alfabética antes de agrupar
+            const sortedRecipes = [...appData.recipes].sort((a, b) => a.name.localeCompare(b.name));
+
+            sortedRecipes.forEach(recipe => {
                 const catId = recipe.categoryId || 1;
                 if(!grouped[catId]) grouped[catId] = [];
                 grouped[catId].push(recipe);
@@ -923,7 +985,13 @@
                 return;
             }
 
-            for (const catId in grouped) {
+            // NOVO: Ordena as categorias (os grupos) em ordem alfabética
+            const sortedCatIds = Object.keys(grouped).sort((a, b) => {
+                return getCategoryName(a).localeCompare(getCategoryName(b));
+            });
+
+            // Substitua a linha "for (const catId in grouped) {" por esta:
+            for (const catId of sortedCatIds) {
                 const catName = getCategoryName(catId);
                 
                 // 1. Cria o cabeçalho clicável e abre a div de conteúdo
@@ -1105,8 +1173,9 @@
 
             const html = `
                 <div style="background:white; padding:20px; border-radius:12px;">
-                    <div style="display:flex; flex-direction:column; gap:15px; margin-bottom:15px;">
-                        <h3 style="margin:0">Editando Produto</h3>
+                    <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:15px;">
+                        <h3 style="margin:0; margin-bottom:10px;">Editando Produto</h3>
+                        <span class="label">Categoria</span>
                         <select onchange="handleCategoryChange(this, ${id})">
                             ${catOptionsHtml}
                         </select>
@@ -1146,7 +1215,6 @@
                 </div>
             `;
             document.getElementById('recipes-list').innerHTML = html;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Generic Field Updater

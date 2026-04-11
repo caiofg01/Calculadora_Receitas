@@ -464,13 +464,10 @@
         </div>
 
     </div>
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-        // TODO: Add SDKs for Firebase products that you want to use
-        // https://firebase.google.com/docs/web/setup#available-libraries
-
-        // Your web app's Firebase configuration
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <script>
+        // 1. Sua configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDbpIzamb8kg9YLiz1__bSSKiLZN_DUBQU",
             authDomain: "calculadora-receitas-8c12e.firebaseapp.com",
@@ -480,10 +477,13 @@
             appId: "1:669197951172:web:7c992b6a5cc9d2d6776991"
         };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-    </script>
-    <script>
+        // 2. Inicializando o Firebase e o Banco de Dados
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // 3. Criando a referência onde TUDO será salvo (docRef agora existe!)
+        const docRef = db.collection("empresa").doc("dados");
+
         // --- DATA STRUCTURE ---
         let appData = {
             ingredients: [

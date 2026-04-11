@@ -464,7 +464,25 @@
         </div>
 
     </div>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
 
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbpIzamb8kg9YLiz1__bSSKiLZN_DUBQU",
+            authDomain: "calculadora-receitas-8c12e.firebaseapp.com",
+            projectId: "calculadora-receitas-8c12e",
+            storageBucket: "calculadora-receitas-8c12e.firebasestorage.app",
+            messagingSenderId: "669197951172",
+            appId: "1:669197951172:web:7c992b6a5cc9d2d6776991"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+    </script>
     <script>
         // --- DATA STRUCTURE ---
         let appData = {
@@ -493,51 +511,47 @@
 
         // --- INIT & PERSISTENCE ---
         function init() {
+            // 1. Carrega o backup local primeiro para a tela não ficar em branco
             const saved = localStorage.getItem('gelaCostData');
             if (saved) {
-                let parsed = JSON.parse(saved);
-                
-                // MIGRATION SCRIPT: from old packaging object to new array
-                if (parsed.packaging && !Array.isArray(parsed.packaging)) {
-                    let newPackArray = [];
-                    let p = parsed.packaging;
-                    if(p.inner) newPackArray.push({id: 101, name: 'Saquinho Interno', price: p.inner.price || 0, qty: p.inner.qty || 1});
-                    if(p.outer) newPackArray.push({id: 102, name: 'Saquinho Externo', price: p.outer.price || 0, qty: p.outer.qty || 1});
-                    if(p.label) newPackArray.push({id: 103, name: 'Etiqueta', price: p.label.price || 0, qty: p.label.qty || 1});
-                    
-                    parsed.packaging = newPackArray;
-
-                    // Migrate recipes to include these default packaging per yield unit
-                    if(parsed.recipes) {
-                        parsed.recipes.forEach(r => {
-                            r.packaging = newPackArray.map(pack => ({ id: pack.id, qty: r.yield || 1 }));
-                            r.categoryId = 1; 
-                        });
-                    }
-                }
-
-                // Add default categories if missing
-                if (!parsed.categories || parsed.categories.length === 0) {
-                    parsed.categories = [{ id: 1, name: 'Geral' }];
-                }
-
-                // Clean old settings
-                if (typeof parsed.settings.targetPrice === 'undefined') parsed.settings.targetPrice = 0;
-                if (typeof parsed.settings.ifoodFee === 'undefined') parsed.settings.ifoodFee = 12;
-
-                appData = parsed;
+                processarDados(JSON.parse(saved));
             }
-            
+
+            // 2. Conecta no Firebase e ESCUTA as mudanças em tempo real
+            docRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    const dataNaNuvem = doc.data();
+                    localStorage.setItem('gelaCostData', JSON.stringify(dataNaNuvem)); // Atualiza o backup local
+                    processarDados(dataNaNuvem);
+                } else {
+                    // Se o documento não existe (primeira vez rodando), salva o appData padrão
+                    saveData();
+                }
+            });
+        }
+
+        // Função auxiliar para organizar o carregamento
+        function processarDados(parsed) {
+            appData = parsed;
             populateInputs();
             renderIngredients();
             renderPackaging();
             renderRecipes();
             renderDashboard();
-            calculateGoal(); 
+            calculateGoal();
         }
 
         function saveData() {
+            // Salva no localStorage como backup local rápido
             localStorage.setItem('gelaCostData', JSON.stringify(appData));
+            
+            // Envia a estrutura completa para o Firestore
+            docRef.set(appData).then(() => {
+                console.log("Dados sincronizados na nuvem!");
+            }).catch((error) => {
+                console.error("Erro ao salvar:", error);
+                alert("Erro ao sincronizar com a nuvem. Verifique sua conexão.");
+            });
         }
 
         function saveOptionsManual() {

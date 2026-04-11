@@ -267,10 +267,31 @@
             /* Rolagem horizontal para tabelas */
             .table-responsive { width: 100%; overflow-x: auto; }
         }
+        /* Tela de Login Compartilhada */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 2000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .login-box {
+            background: white; padding: 40px; border-radius: var(--radius);
+            box-shadow: var(--shadow); text-align: center; width: 90%; max-width: 400px;
+        }
+        #app-content { display: none; } /* Esconde o app principal até logar */
     </style>
 </head>
 <body>
-
+    <div id="login-screen">
+        <div class="login-box">
+            <div class="logo-icon" style="margin: 0 auto 15px auto; width: 60px; height: 60px; font-size: 1.8rem;"><i class="fa-solid fa-calculator"></i></div>
+            <h2 style="color: var(--primary);">GelaCost PRO</h2>
+            <p class="sub-text" style="margin-bottom: 20px;">Acesso restrito. Digite a senha da equipe.</p>
+            <input type="password" id="shared-password" placeholder="Sua senha..." style="text-align: center; margin-bottom: 15px;">
+            <button class="btn btn-primary" style="width: 100%; padding: 15px;" onclick="tentarLogin()">Acessar Sistema</button>
+            <p id="login-error" style="color: var(--danger); font-size: 0.85rem; margin-top: 10px; display: none;">Senha incorreta. Tente novamente.</p>
+        </div>
+    </div>
+    <div id="app-content">
     <header>
         <div class="header-left">
             <div class="logo-icon"><i class="fa-solid fa-calculator"></i></div>
@@ -466,6 +487,7 @@
     </div>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <script>
         // 1. Sua configuração do Firebase
         const firebaseConfig = {
@@ -477,12 +499,65 @@
             appId: "1:669197951172:web:7c992b6a5cc9d2d6776991"
         };
 
-        // 2. Inicializando o Firebase e o Banco de Dados
+        // 2. Inicializando o Firebase, Banco e Auth
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        
-        // 3. Criando a referência onde TUDO será salvo (docRef agora existe!)
+        const auth = firebase.auth();
         const docRef = db.collection("empresa").doc("dados");
+
+        const EMAIL_COMPARTILHADO = "acesso@gelacost.com"; // Deve ser O MESMO que você criou no Firebase
+
+        // Função chamada pelo botão da tela inicial
+        function tentarLogin() {
+            const senha = document.getElementById('shared-password').value;
+            const erroMsg = document.getElementById('login-error');
+            
+            auth.signInWithEmailAndPassword(EMAIL_COMPARTILHADO, senha)
+                .then(() => {
+                    // Login com sucesso (a tela some automaticamente pelo listener abaixo)
+                    erroMsg.style.display = 'none';
+                })
+                .catch((error) => {
+                    erroMsg.style.display = 'block';
+                    console.error("Erro no login:", error);
+                });
+        }
+
+        // --- INIT & PERSISTENCE ---
+        // Observador de Autenticação (A Mágica acontece aqui)
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // Usuário digitou a senha certa
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                iniciarSincronizacao(); // Antigo init()
+            } else {
+                // Não está logado, mostra a tela de senha
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('app-content').style.display = 'none';
+            }
+        });
+
+        // Este é o seu init() antigo renomeado, para só rodar SE a senha for aceita
+        function iniciarSincronizacao() {
+            const saved = localStorage.getItem('gelaCostData');
+            if (saved) {
+                processarDados(JSON.parse(saved));
+            }
+
+            docRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    const dataNaNuvem = doc.data();
+                    localStorage.setItem('gelaCostData', JSON.stringify(dataNaNuvem)); 
+                    processarDados(dataNaNuvem);
+                } else {
+                    saveData();
+                }
+            });
+        }
+        
+        // --- DATA STRUCTURE ---
+        // (O resto do seu código appData, processarDados, saveData, etc., continua igual)
 
         // --- DATA STRUCTURE ---
         let appData = {
@@ -1295,5 +1370,6 @@
 
         init();
     </script>
+    </div>
 </body>
 </html>

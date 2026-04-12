@@ -1270,12 +1270,14 @@
             const ingId = select.value;
             if (ingId && qty) {
                 appData.recipes.find(r => r.id === recipeId).ingredients.push({ id: parseInt(ingId), qty: parseFloat(qty), unit: unit });
-                saveData(); editRecipe(recipeId);
+                // REMOVIDO o saveData() daqui
+                editRecipe(recipeId);
             }
         }
         function removeRecipeIng(recipeId, index) {
             appData.recipes.find(r => r.id === recipeId).ingredients.splice(index, 1);
-            saveData(); editRecipe(recipeId);
+            // REMOVIDO o saveData() daqui
+            editRecipe(recipeId);
         }
         function updateRecipeIng(recipeId, index, field, val) {
             const r = appData.recipes.find(r => r.id === recipeId);
@@ -1289,13 +1291,17 @@
             const packId = select.value;
             if (packId && qty) {
                 appData.recipes.find(r => r.id === recipeId).packaging.push({ id: parseInt(packId), qty: parseFloat(qty) });
-                saveData(); editRecipe(recipeId);
+                // REMOVIDO o saveData() daqui
+                editRecipe(recipeId);
             }
         }
+        
         function removeRecipePack(recipeId, index) {
             appData.recipes.find(r => r.id === recipeId).packaging.splice(index, 1);
-            saveData(); editRecipe(recipeId);
+            // REMOVIDO o saveData() daqui
+            editRecipe(recipeId);
         }
+
         function updateRecipePack(recipeId, index, val) {
             appData.recipes.find(r => r.id === recipeId).packaging[index].qty = parseFloat(val);
         }

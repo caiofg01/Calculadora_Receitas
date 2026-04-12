@@ -599,12 +599,7 @@
             populateInputs();
             renderIngredients();
             renderPackaging();
-            
-            // TRAVA DE SEGURANÇA: Só atualiza a lista visual se NÃO estiver editando uma receita
-            if (!document.getElementById('edit-recipe-name')) {
-                renderRecipes();
-            }
-            
+            renderRecipes(); // Retiramos a trava daqui!
             renderDashboard();
             if (typeof renderCategoryOptions === 'function') renderCategoryOptions();
             calculateGoal();
@@ -1045,7 +1040,7 @@
                     });
 
                     categoryHtml += `
-                        <div class="card">
+                        <div class="card" id="recipe-card-${recipe.id}">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                                 <div>
                                     <h2 style="margin:0">${recipe.name} <span class="badge-category">${catName}</span></h2>
@@ -1054,7 +1049,7 @@
                                 <div style="display:flex; flex-wrap:wrap; gap:5px; justify-content:flex-end;">
                                     <button class="btn btn-secondary" onclick="duplicateRecipe(${recipe.id})" style="padding:8px;" title="Duplicar Receita"><i class="fa-solid fa-copy"></i></button>
                                     <button class="btn btn-danger" onclick="deleteRecipe(${recipe.id})" style="padding:8px;"><i class="fa-solid fa-trash"></i></button>
-                                    <button class="btn btn-primary" onclick="editRecipe(${recipe.id})" style="padding:8px 12px;">Editar</button>
+                                    <button class="btn btn-primary" onclick="editRecipe(${recipe.id}, true)" style="padding:8px 12px;">Editar</button>
                                 </div>
                             </div>
                             <hr style="margin:15px 0; border-color:var(--border);">
@@ -1095,8 +1090,19 @@
             const newRecipe = { id: generateId(), name: name, categoryId: 1, time: 30, yield: 10, ingredients: [], packaging: [] };
             appData.recipes.push(newRecipe);
             saveData();
-            renderRecipes();
-            editRecipe(newRecipe.id);
+            
+            // Aguarda meio segundo para o Firebase sincronizar e rola a tela até a receita nova
+            setTimeout(() => {
+                const card = document.getElementById('recipe-card-' + newRecipe.id);
+                if (card) {
+                    // Rola a tela deixando o card no centro
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Dá uma "piscada" na borda do card para você saber onde ele está
+                    card.style.transition = "0.3s";
+                    card.style.boxShadow = "0 0 0 3px var(--primary)";
+                    setTimeout(() => card.style.boxShadow = "var(--shadow)", 2000);
+                }
+            }, 500);
         }
 
         function deleteRecipe(id) {
@@ -1122,7 +1128,7 @@
             }
         }
 
-        function editRecipe(id) {
+        function editRecipe(id, scrollToTop = false) {
             const recipe = appData.recipes.find(r => r.id === id);
             if (!recipe) return;
             if(!recipe.packaging) recipe.packaging = [];
@@ -1231,6 +1237,11 @@
                 </div>
             `;
             document.getElementById('recipes-list').innerHTML = html;
+            
+            // NOVO: Só rola para o topo se a função for chamada com "true" (pelo botão inicial de editar)
+            if (scrollToTop) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
         // Generic Field Updater

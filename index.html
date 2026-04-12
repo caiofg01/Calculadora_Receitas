@@ -651,9 +651,7 @@
             document.getElementById('opt-waste').value = appData.settings.wasteMargin;
             document.getElementById('opt-ifood').value = appData.settings.ifoodFee;
 
-            document.getElementById('home-fixed-cost').value = appData.settings.monthlyFixed;
-            document.getElementById('home-target-price').value = appData.settings.targetPrice;
-        }
+            }
 
         // --- BACKUP SYSTEM ---
         function toggleDataModal() {
@@ -1407,9 +1405,7 @@
             const targetPrice = parseFloat(document.getElementById('home-target-price').value) || 0;
             const resultArea = document.getElementById('meta-result-area');
             
-            appData.settings.monthlyFixed = fixedCost;
-            appData.settings.targetPrice = targetPrice;
-            saveData();
+            
 
             if(fixedCost <= 0 || targetPrice <= 0) {
                 resultArea.innerHTML = `<div class="sub-text" style="padding:10px;">Preencha os valores acima para calcular.</div>`;
